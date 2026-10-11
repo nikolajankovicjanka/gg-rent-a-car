@@ -1,0 +1,60 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Laravel
+backend/vendor/
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/bootstrap/cache/*.php
+backend/public/storage
+backend/.phpunit.result.cache
+
+# Vue / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+
+# Dependencies in other directories
+**/node_modules/
+**/vendor/
+
+# Local databases and backups
+*.sqlite
+*.sqlite3
+*.sql
+*.sql.gz
+*.zip
+
+# IDE and operating system
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.log
+*.tmp
+
+# Backup directories
+backend-backup/
+
+# Windows metadata
+*:Zone.Identifier
+
+# Local secrets and data
+*.pem
+*.key
+*.p12
+*.pfx
+backend/storage/app/private/*
+!backend/storage/app/private/.gitignore

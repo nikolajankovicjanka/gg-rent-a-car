@@ -1,0 +1,1 @@
+Run: docker compose run --rm app sh /var/www/html/../NO - see root README for correct command.\n
