@@ -30,7 +30,9 @@ const notes = ref('');
 
 const vehicle = computed(() => store.items.find((v) => v.id === vehicleId.value));
 
-const whatsAppNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '38765000000';
+const whatsAppNumber = String(
+    import.meta.env.VITE_WHATSAPP_NUMBER || '+38766028308'
+).replace(/\D/g, '');
 
 const whatsAppUrl = computed(() => {
   const message = `Pozdrav, želim upit za ${
