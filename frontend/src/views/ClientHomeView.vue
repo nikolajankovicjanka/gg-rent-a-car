@@ -1,176 +1,227 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-
-// Sve fotografije se nalaze u frontend/public/images/.
-// Promijeni samo putanje ako želiš drugi redoslijed prikaza.
-const PHONE = '+38766028308'
-const WHATSAPP = '38766028308'
-const LOGO = '/images/gg-group-logo-white.png'
-
-const vehicle = {
-  name: 'Škoda Octavia',
-  description: 'Udobnost, elegancija i sigurnost za svaki put. Izaberite termin i pošaljite nam upit za dostupnost.',
-  pricePerDay: 150,
-  transmission: 'Automatik',
-  fuel_type: 'Dizel',
-  year: 2026,
-  heroImage: '/images/original-3.png',
-  gallery: [
-    '/images/original-3.png',
-    '/images/original-5.png',
-    '/images/original-6.png',
-    '/images/original-7.png',
-    '/images/original-8.png',
-  ],
-}
-
-const title = vehicle.name
-const price = vehicle.pricePerDay
-const photos = [vehicle.heroImage, ...vehicle.gallery]
-const galleryPhotos = vehicle.gallery
-const selectedImage = ref(0)
-const pickup = ref('')
-const dropoff = ref('')
-const serviceType = ref('short')
-const pickupLocation = ref('')
-const note = ref('')
-const showExtras = ref(false)
-const lightbox = ref(false)
-const faqOpen = ref<number | null>(null)
-const currentImage = computed(() => photos[selectedImage.value] || photos[0])
-const minDateTime = localDateTime(new Date())
-
-const faqs = [
-  { q: 'Kako da rezervišem automobil?', a: 'Izaberite datume i pošaljite upit putem WhatsAppa. Potvrdićemo dostupnost i detalje rezervacije.' },
-  { q: 'Da li je prikazana cijena konačna?', a: 'Prikazana cijena je okvirna. Konačna ponuda zavisi od termina, trajanja i dogovorenih uslova.' },
-  { q: 'Mogu li dobiti vozilo sa vozačem?', a: 'Pošaljite upit putem WhatsAppa ili nas pozovite kako bismo dogovorili odgovarajuću uslugu.' },
-  { q: 'Kako dogovaramo mjesto preuzimanja?', a: 'Mjesto preuzimanja navedite u upitu ili ga dogovorite sa nama direktno.' },
-]
-
-const days = computed(() => {
-  if (!pickup.value || !dropoff.value) return 0
-  const diff = new Date(dropoff.value).getTime() - new Date(pickup.value).getTime()
-  return Number.isFinite(diff) && diff > 0 ? Math.ceil(diff / 86_400_000) : 0
-})
-const estimate = computed(() => days.value ? price * days.value : null)
-const canSend = computed(() => {
-  if (!pickup.value || !dropoff.value || days.value <= 0) return false
-  return new Date(pickup.value).getTime() >= Date.now() - 60_000
-})
-
-function localDateTime(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-function formattedDate(value: string): string {
-  return value ? new Date(value).toLocaleString('bs-BA', { dateStyle: 'medium', timeStyle: 'short' }) : 'Nije izabrano'
-}
-function whatsappUrl(): string {
-  const message = [
-    'Pozdrav, želim poslati upit za najam vozila.',
-    `Vozilo: ${title}`,
-    `Usluga: ${serviceType.value === 'short' ? 'Kratkoročni najam' : 'Dugoročni najam'}`,
-    `Preuzimanje: ${formattedDate(pickup.value)}`,
-    `Vraćanje: ${formattedDate(dropoff.value)}`,
-    `Trajanje: ${days.value} dana`,
-    estimate.value !== null ? `Okvirna cijena: ${estimate.value.toLocaleString('bs-BA')} KM` : '',
-    pickupLocation.value ? `Mjesto preuzimanja: ${pickupLocation.value}` : '',
-    note.value ? `Napomena: ${note.value}` : '',
-  ].filter(Boolean).join('\n')
-  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(message)}`
-}
-function sendInquiry(): void {
-  if (canSend.value) window.open(whatsappUrl(), '_blank', 'noopener,noreferrer')
-}
-function scrollToGallery(): void {
-  document.getElementById('vehicle-gallery')?.scrollIntoView({ behavior: 'smooth' })
-}
-function changeImage(delta: number): void {
-  selectedImage.value = (selectedImage.value + delta + photos.length) % photos.length
-}
-function quickDays(count: number): void {
-  const now = new Date()
-  const selected = pickup.value ? new Date(pickup.value) : now
-  const start = selected.getTime() >= now.getTime() ? selected : now
-  pickup.value = localDateTime(start)
-  const end = new Date(start)
-  end.setDate(end.getDate() + count)
-  dropoff.value = localDateTime(end)
-}
+import { onMounted } from 'vue';
+import '../assets/client-home.css';
+import { initClientHome } from '../assets/client-home';
+onMounted(() => { initClientHome(); });
 </script>
 
 <template>
-  <div class="client-home">
-    <header class="topbar">
-      <div class="container header-inner">
-        <div class="brand"><img :src="LOGO" alt="GG Group" class="brand-logo" /><span class="brand-divider"></span><span class="brand-sub">VIP TRANSFER</span></div>
-        <div class="header-actions">
-          <a class="outline-button" :href="`tel:${PHONE}`">☎ <span>Pozovi za rezervaciju</span></a>
-          <a class="outline-button" :href="`https://wa.me/${WHATSAPP}`" target="_blank" rel="noopener noreferrer"><span class="wa-icon">◉</span> <span>WhatsApp rezervacija</span></a>
-        </div>
-      </div>
-    </header>
 
-    <div class="service-strip"><span>NAŠE USLUGE</span><span class="strip-divider"></span><strong>Kratkoročno izdavanje</strong></div>
+  <a class="skip-link" href="#main">Pređi na sadržaj</a>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="icon-phone" viewBox="0 0 24 24"><path d="m7 3 3 5-2 2a14 14 0 0 0 6 6l2-2 5 3-1 4C11 22 2 13 3 4z"/></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18m-13 5h3"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="icon-transmission" viewBox="0 0 24 24"><path d="M6 4v16M18 4v8H6m6-8v8"/><circle cx="6" cy="4" r="1.5"/><circle cx="12" cy="4" r="1.5"/><circle cx="18" cy="4" r="1.5"/><circle cx="6" cy="20" r="1.5"/></symbol>
+    <symbol id="icon-fuel" viewBox="0 0 24 24"><path d="M3 21h12M5 21V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v17M5 10h8m0 3h2a2 2 0 0 1 2 2v3a2 2 0 0 0 4 0V9l-4-4m2 2v4h2"/></symbol>
+    <symbol id="icon-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  </svg>
 
-    <main class="container">
-      <section class="hero-grid">
-          <div class="vehicle-column">
-            <div class="cover-frame" @click="selectedImage = 0; lightbox = true">
-              <img :src="vehicle.heroImage" :alt="title" class="cover-image" />
-              <button class="expand-button" type="button" aria-label="Otvori fotografiju" @click.stop="selectedImage = 0; lightbox = true">⛶</button>
-              <div class="cover-caption"><strong>{{ title }}</strong><span>GG Rent / VIP Transfer</span></div>
-            </div>
-            <button class="gallery-link" type="button" @click="scrollToGallery">
-              <strong>Pogledaj cijelu galeriju</strong><span>{{ photos.length }} fotografija</span><span class="gallery-arrow">↓</span>
-            </button>
-            <div class="specs">
-              <span v-if="vehicle.transmission">⚙ &nbsp;{{ vehicle.transmission }}</span>
-              <span v-if="vehicle.fuel_type">♧ &nbsp;{{ vehicle.fuel_type }}</span>
-              <span v-if="vehicle.year">▦ &nbsp;{{ vehicle.year }} godište</span>
-            </div>
-          </div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#main" aria-label="G Group VIP Transfer — početak">
+        <span class="brand-logo"><img src="/images/original-1.jpg" alt="G Group" width="104" height="104"></span>
+        <span class="brand-divider" aria-hidden="true"></span>
+        <span class="brand-name">VIP Transfer</span>
+      </a>
+      <nav class="header-actions" aria-label="Rezervacija">
+        <a class="button button-outline" href="tel:+38766028308">
+          <svg class="icon" aria-hidden="true"><use href="#icon-phone"/></svg>
+          <span>Pozovi za rezervaciju</span>
+        </a>
+        <a class="button button-header" href="#reservation">
+          <span class="wa-logo"><svg class="wa-inline" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 2.2A13.8 13.8 0 0 0 4.1 23l-1.7 6.6 6.8-1.8A13.8 13.8 0 1 0 16 2.2Zm0 25a11.1 11.1 0 0 1-5.6-1.5l-.4-.3-4 1.1 1.1-3.9-.3-.5A11.1 11.1 0 1 1 16 27.2Zm6-8.3c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.4-.2-1.4-.5-2.6-1.7-1-1-1.7-2-1.9-2.3-.2-.4 0-.5.1-.7l.6-.6.3-.5c.1-.2 0-.4 0-.6l-1-2.5c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-1 .5-.4.4-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.6c.2.2 2.3 3.6 5.7 5 .8.4 1.4.6 1.9.7.8.3 1.5.2 2 .1.6-.1 1.9-.8 2.2-1.6.3-.8.3-1.5.2-1.6-.1-.1-.3-.2-.6-.4Z"/></svg></span>
+          <span>WhatsApp rezervacija</span>
+        </a>
+      </nav>
+    </div>
+  </header>
 
-          <div class="details-column">
-            <h1>{{ title }}</h1>
-            <p class="description">{{ vehicle.description || 'Prostrano i elegantno vozilo za poslovni put, odmor ili svakodnevne obaveze. Izaberite termin i pošaljite upit za dostupnost.' }}</p>
-            <div class="price-row"><span>Cijena najma</span><div v-if="price">od <strong>{{ price.toLocaleString('bs-BA') }} KM</strong> / dan</div><div v-else>Na upit</div></div>
-
-            <div class="booking-card">
-              <div class="card-heading"><span>01</span><div><h2>Planirajte svoju vožnju</h2><p>Izaberite termin. Ponuda stiže putem WhatsAppa.</p></div></div>
-              <label for="service-type">Vrsta usluge</label>
-              <select id="service-type" v-model="serviceType"><option value="short">Kratkoročni najam</option><option value="long">Dugoročni najam</option></select>
-              <div class="date-grid">
-                <div><label for="pickup">Datum preuzimanja *</label><input id="pickup" v-model="pickup" type="datetime-local" :min="minDateTime" /></div>
-                <div><label for="dropoff">Datum vraćanja *</label><input id="dropoff" v-model="dropoff" type="datetime-local" :min="minDateTime" /><small>* Izaberite oba termina za procjenu ukupne cijene.</small></div>
-              </div>
-              <div class="quick-row"><span>Brzi odabir</span><div><button v-for="count in [1,3,7]" :key="count" type="button" @click="quickDays(count)">{{ count }} {{ count === 1 ? 'dan' : 'dana' }}</button></div></div>
-              <div class="estimate"><span>* Okvirna cijena najma</span><strong>{{ estimate !== null ? `${estimate.toLocaleString('bs-BA')} KM` : price !== null ? `od ${price.toLocaleString('bs-BA')} KM / dan` : 'Na upit' }}</strong></div>
-              <button class="extras-toggle" type="button" @click="showExtras = !showExtras">{{ showExtras ? '▾' : '▸' }} Mjesto preuzimanja i napomena <small>opciono</small></button>
-              <div v-if="showExtras" class="extras"><input v-model="pickupLocation" placeholder="Mjesto preuzimanja" /><textarea v-model="note" rows="3" placeholder="Dodatna napomena"></textarea></div>
-              <button class="send-button" type="button" :disabled="!canSend" @click="sendInquiry"><span><span class="wa-icon">◉</span> Pošalji upit putem WhatsAppa</span><span>→</span></button>
-              <p class="booking-note">Upit ne potvrđuje rezervaciju. Dostupnost dogovaramo u poruci.</p>
-            </div>
-          </div>
-        </section>
-
-        <section id="vehicle-gallery" class="gallery-section">
-          <div class="section-heading"><div><span>02</span><h2>Pogled iz svakog ugla.</h2></div><span>Eksterijer &amp; unutrašnjost</span></div>
-          <div class="gallery-stage" v-if="photos.length"><img :src="currentImage" :alt="`${title} — fotografija ${selectedImage + 1}`" @click="lightbox = true" /></div>
-          <div v-else class="gallery-stage image-placeholder">Fotografije nisu dostupne</div>
-          <div class="thumbnail-grid"><button v-for="(photo, i) in galleryPhotos" :key="photo" type="button" :class="{ active: selectedImage === i+1 }" @click="selectedImage = i+1"><img :src="photo" :alt="`${title} — dodatna fotografija ${i+2}`" /><span>Fotografija {{ i+2 }}</span></button></div>
-        </section>
-
-        <section class="faq-section"><p>Za sve detalje tu smo na <a :href="`tel:${PHONE}`">+387 66 028 308</a>.</p><div class="faq-list"><div v-for="(faq, i) in faqs" :key="faq.q" class="faq-item"><button type="button" @click="faqOpen = faqOpen === i ? null : i">{{ faq.q }} <span>{{ faqOpen === i ? '−' : '+' }}</span></button><p v-if="faqOpen === i">{{ faq.a }}</p></div></div></section>
-    </main>
-
-    <footer class="footer"><div class="container footer-inner"><span><strong>GG Rent</strong> &nbsp; VIP TRANSFER</span><a :href="`tel:${PHONE}`">+387 66 028 308 &nbsp; ☎</a></div></footer>
-    <div v-if="lightbox && currentImage" class="lightbox" role="dialog" aria-modal="true" @click.self="lightbox = false"><button type="button" aria-label="Zatvori" @click="lightbox = false">✕</button><img :src="currentImage" :alt="title" /></div>
+  <div class="services" aria-label="Naše usluge">
+    <div class="container services-inner">
+      <span class="services-label">Naše usluge</span>
+      <span id="service-text">Iznajmljivanje automobila sa šoferom</span>
+    </div>
   </div>
+
+  <main class="container" id="main">
+    <section class="vehicle" aria-labelledby="vehicle-title">
+      <div class="vehicle-media">
+        <figure class="hero-image">
+          <button class="hero-expand icon-button" type="button" aria-label="Uvećaj glavnu fotografiju"><svg class="icon" aria-hidden="true"><use href="#icon-expand"/></svg></button>
+          <img src="/images/original-3.png" alt="Crna Škoda Octavia ispred modernog objekta, pogled sprijeda i sa strane" width="864" height="1536" fetchpriority="high">
+          <figcaption><span>Škoda Octavia</span><span>GG Rent / VIP Transfer</span></figcaption>
+        </figure>
+        <a class="gallery-link button button-outline" href="#fotografije">
+          <span>Pogledaj cijelu galeriju <small>5 fotografija</small></span>
+          <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg>
+        </a>
+        <ul class="vehicle-tags" aria-label="Karakteristike vozila">
+          <li><svg class="icon" aria-hidden="true"><use href="#icon-transmission"/></svg>Automatik</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#icon-fuel"/></svg>Dizel</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#icon-calendar"/></svg>2026 godište</li>
+        </ul>
+      </div>
+
+      <div class="vehicle-details">
+        <div class="vehicle-heading">
+          <h1 id="vehicle-title">Škoda Octavia</h1>
+          <p class="intro">Prostrana i elegantna limuzina za poslovni put, odmor ili svakodnevne obaveze. Izaberite termin i pošaljite upit za dostupnost.</p>
+          <div class="price-row">
+            <span>Cijena najma</span>
+            <p><span class="price-prefix">od</span> <strong>150 KM</strong> <span class="price-period">/ dan</span></p>
+          </div>
+        </div>
+
+        <form class="reservation" id="reservation" data-whatsapp="38766028308" novalidate aria-labelledby="reservation-title">
+          <div class="form-heading">
+            <span class="section-index" aria-hidden="true">01</span>
+            <h2 id="reservation-title">Planirajte svoju vožnju</h2>
+            <p>Izaberite termin. Ponuda stiže putem WhatsAppa.</p>
+          </div>
+          <div class="field service-field">
+            <label for="rental-service">Vrsta usluge</label>
+            <select id="rental-service" name="service">
+              <option value="rental">Kratkoročni najam</option>
+              <option value="driver">Najam sa vozačem</option>
+              <option value="business">Najam za kompaniju</option>
+              <option value="longterm">Dugoročni najam</option>
+            </select>
+          </div>
+          <div class="date-fields">
+            <div class="field">
+              <label for="pickup">Datum preuzimanja <span aria-hidden="true">*</span></label>
+              <div class="date-input-wrap">
+                <svg class="icon" aria-hidden="true"><use href="#icon-calendar"/></svg>
+                <input id="pickup" name="pickup" type="text" placeholder="Izaberite datum i vrijeme" readonly aria-haspopup="dialog" aria-controls="booking-dialog" aria-required="true" aria-describedby="pickup-error">
+              </div>
+              <p class="field-error" id="pickup-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="dropoff">Datum vraćanja <span aria-hidden="true">*</span></label>
+              <div class="date-input-wrap">
+                <svg class="icon" aria-hidden="true"><use href="#icon-calendar"/></svg>
+                <input id="dropoff" name="dropoff" type="text" placeholder="Izaberite datum i vrijeme" readonly aria-haspopup="dialog" aria-controls="booking-dialog" aria-required="true" aria-describedby="dropoff-error estimate-hint">
+              </div>
+              <p class="field-error" id="dropoff-error" hidden></p>
+              <p class="field-hint" id="estimate-hint">* Izaberite oba termina za procjenu ukupne cijene.</p>
+            </div>
+          </div>
+          <div class="duration-presets" role="group" aria-label="Brzi izbor trajanja najma">
+            <span>Brzi odabir</span>
+            <button type="button" data-days="1" aria-pressed="false">1 dan</button>
+            <button type="button" data-days="3" aria-pressed="false">3 dana</button>
+            <button type="button" data-days="7" aria-pressed="false">7 dana</button>
+          </div>
+          <div class="booking-estimate" aria-live="polite" aria-atomic="true">
+            <div class="estimate-top"><span id="estimate-label">* Okvirna cijena najma</span><strong id="estimate-price">od 150 KM <small>/ dan</small></strong></div>
+            <p id="estimate-duration" hidden></p>
+            <p class="estimate-disclaimer" id="estimate-disclaimer" hidden>Procjena po početnoj cijeni od 150 KM za započeta 24 h. Konačnu cijenu i uslove potvrđujemo u ponudi.</p>
+          </div>
+          <details class="additional-details">
+            <summary>Mjesto preuzimanja i napomena <span>opciono</span></summary>
+            <div class="field">
+              <label for="pickup-location">Željeno mjesto preuzimanja</label>
+              <input id="pickup-location" name="location" type="text" placeholder="Npr. adresa, hotel ili aerodrom" maxlength="180" autocomplete="off">
+            </div>
+            <div class="field note-field">
+              <label for="additional-note">Dodatna napomena</label>
+              <textarea id="additional-note" name="note" placeholder="Npr. destinacija transfera ili dodatni zahtjev…" maxlength="500" rows="2"></textarea>
+            </div>
+          </details>
+          <button class="button button-primary" type="submit">
+            <span class="wa-logo"><svg class="wa-inline" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 2.2A13.8 13.8 0 0 0 4.1 23l-1.7 6.6 6.8-1.8A13.8 13.8 0 1 0 16 2.2Zm0 25a11.1 11.1 0 0 1-5.6-1.5l-.4-.3-4 1.1 1.1-3.9-.3-.5A11.1 11.1 0 1 1 16 27.2Zm6-8.3c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.4-.2-1.4-.5-2.6-1.7-1-1-1.7-2-1.9-2.3-.2-.4 0-.5.1-.7l.6-.6.3-.5c.1-.2 0-.4 0-.6l-1-2.5c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-1 .5-.4.4-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.6c.2.2 2.3 3.6 5.7 5 .8.4 1.4.6 1.9.7.8.3 1.5.2 2 .1.6-.1 1.9-.8 2.2-1.6.3-.8.3-1.5.2-1.6-.1-.1-.3-.2-.6-.4Z"/></svg></span>
+            <span>Pošalji upit putem WhatsAppa</span>
+            <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg>
+          </button>
+          <p class="form-note">Upit ne potvrđuje rezervaciju. Dostupnost dogovaramo u poruci.</p>
+
+        </form>
+      </div>
+    </section>
+
+    <section class="gallery" id="fotografije" aria-labelledby="gallery-title">
+      <div class="section-heading">
+        <div class="section-title"><span class="section-index" aria-hidden="true">02</span><h2 id="gallery-title">Pogled iz svakog ugla.</h2></div>
+        <p>Eksterijer &amp; unutrašnjost</p>
+      </div>
+      <div class="carousel" role="region" aria-roledescription="karusel" aria-label="Fotografije Škode Octavije" tabindex="0">
+        <div class="carousel-stage">
+          <button class="slide is-active" type="button" data-caption="Bočni profil" aria-label="Uvećaj fotografiju: bočni profil"><img src="/images/original-5.png" alt="Crna Škoda Octavia, bočni pogled" width="1536" height="1152" loading="lazy"></button>
+          <button class="slide" type="button" data-caption="Pogled sprijeda" aria-label="Uvećaj fotografiju: pogled sprijeda" tabindex="-1" aria-hidden="true"><img class="portrait" src="/images/original-6.png" alt="Škoda Octavia, pogled sprijeda i sa strane" width="864" height="1536" loading="lazy"></button>
+          <button class="slide" type="button" data-caption="Prednji dio" aria-label="Uvećaj fotografiju: prednji dio" tabindex="-1" aria-hidden="true"><img src="/images/original-7.png" alt="Prednji dio crne Škode Octavije" width="1536" height="1152" loading="lazy"></button>
+          <button class="slide" type="button" data-caption="Zadnji dio" aria-label="Uvećaj fotografiju: zadnji dio" tabindex="-1" aria-hidden="true"><img src="/images/original-8.png" alt="Zadnji dio crne Škode Octavije" width="1536" height="1152" loading="lazy"></button>
+          <button class="slide" type="button" data-caption="Unutrašnjost" aria-label="Uvećaj fotografiju: unutrašnjost" tabindex="-1" aria-hidden="true"><img src="/images/original-9.jpg" alt="Unutrašnjost Škode Octavije, vozačevo mjesto i instrument tabla" width="1536" height="1152" loading="lazy"></button>
+        </div>
+        <div class="gallery-toolbar">
+          <p class="gallery-caption"><span id="slide-count">01 / 05</span><span id="slide-caption">Bočni profil</span></p>
+          <div class="carousel-dots" role="group" aria-label="Izaberite fotografiju">
+            <button type="button" aria-label="Fotografija 1: bočni profil" aria-current="true"></button>
+            <button type="button" aria-label="Fotografija 2: pogled sprijeda" aria-current="false"></button>
+            <button type="button" aria-label="Fotografija 3: prednji dio" aria-current="false"></button>
+            <button type="button" aria-label="Fotografija 4: zadnji dio" aria-current="false"></button>
+            <button type="button" aria-label="Fotografija 5: unutrašnjost" aria-current="false"></button>
+          </div>
+          <div class="gallery-arrows">
+            <button type="button" class="icon-button previous" aria-label="Prethodna fotografija"><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+            <button type="button" class="icon-button next" aria-label="Sljedeća fotografija"><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+          </div>
+        </div>
+        <div class="gallery-thumbnails" role="group" aria-label="Brzi pregled fotografija"></div>
+      </div>
+    </section>
+
+    <section class="questions" aria-label="Pitanja i kontakt">
+      <div class="questions-heading"><p>Za sve detalje tu smo na <a href="tel:+38766028308">+387 66 028 308</a>.</p></div>
+      <div class="faq-list">
+        <details><summary>Kako da rezervišem automobil?</summary><p>Odaberite uslugu, datum i vrijeme preuzimanja i vraćanja. Dugme otvara WhatsApp s pripremljenom porukom koju vi šaljete. Dostupnost, konačnu cijenu i uslove dogovaramo u odgovoru.</p></details>
+        <details><summary>Da li je prikazana cijena konačna?</summary><p>Cijena najma počinje od 150 KM po danu. Kalkulator daje okvirnu procjenu po započetom periodu od 24 sata. Konačna ponuda zavisi od termina i usluge; potvrđujemo je prije rezervacije.</p></details>
+        <details><summary>Mogu li dobiti vozilo sa vozačem?</summary><p>Da. U formi izaberite „Najam sa vozačem“, a u napomeni navedite destinaciju i ostale detalje puta. Za ovu uslugu pripremamo ponudu na upit.</p></details>
+        <details><summary>Kako dogovaramo mjesto preuzimanja?</summary><p>Unesite željeno mjesto u polje „Mjesto preuzimanja i napomena“. Tačnu lokaciju i mogućnost preuzimanja dogovaramo putem WhatsAppa ili telefonom.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner"><p><strong>GG Rent</strong><span>VIP Transfer</span></p><div class="footer-contact"><a href="tel:+38766028308">+387 66 028 308 <svg class="icon" aria-hidden="true"><use href="#icon-phone"/></svg></a></div></div>
+  </footer>
+
+  <dialog class="booking-dialog" id="booking-dialog" aria-labelledby="booking-title">
+    <div class="dialog-heading"><h2 id="booking-title">Datum preuzimanja</h2><button class="icon-button" id="booking-close" type="button" aria-label="Zatvori izbor termina"><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+    <input id="picker-date" type="date" hidden>
+    <div class="calendar" aria-label="Izaberite datum">
+      <div class="calendar-navigation">
+        <button type="button" class="icon-button previous" id="calendar-previous" aria-label="Prethodni mjesec"><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+        <h3 id="calendar-month" aria-live="polite"></h3>
+        <button type="button" class="icon-button" id="calendar-next" aria-label="Sljedeći mjesec"><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+      </div>
+      <div class="calendar-weekdays" id="calendar-weekdays" aria-hidden="true"></div>
+      <div class="calendar-days" id="calendar-days" role="group" aria-labelledby="calendar-month"></div>
+    </div>
+    <div class="time-fields">
+      <div class="field"><label for="picker-hour">Sat</label><select id="picker-hour" required></select></div>
+      <span class="time-separator" aria-hidden="true">:</span>
+      <div class="field"><label for="picker-minute">Minute</label><select id="picker-minute" required></select></div>
+    </div>
+    <p class="picker-hint">Vrijeme se bira u koracima od 15 minuta.</p>
+    <p class="field-error" id="booking-error" role="alert" hidden></p>
+    <div class="dialog-actions"><button class="button button-secondary" id="booking-cancel" type="button">Odustani</button><button class="button button-primary" id="booking-confirm" type="button">Potvrdi termin</button></div>
+  </dialog>
+
+  <dialog class="lightbox" aria-label="Uvećana fotografija vozila">
+    <button class="icon-button lightbox-close" type="button" aria-label="Zatvori fotografiju"><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button>
+    <div class="lightbox-stage"><img alt=""></div>
+    <div class="lightbox-toolbar">
+      <button class="icon-button previous" id="lightbox-previous" type="button" aria-label="Prethodna uvećana fotografija"><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+      <p class="lightbox-caption" aria-live="polite"></p>
+      <button class="icon-button" id="lightbox-next" type="button" aria-label="Sljedeća uvećana fotografija"><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+    </div>
+  </dialog>
+  <aside class="mobile-booking" aria-label="Brza rezervacija" hidden>
+    <div><span>Škoda Octavia</span><strong id="mobile-estimate">od 150 KM <small>/ dan</small></strong></div>
+    <a class="button button-primary" href="#reservation"><span id="mobile-action-label">Izaberite termin</span> <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></a>
+  </aside>
+
 </template>
-
-<style scoped>
-.brand-logo{display:block;max-width:150px;max-height:48px;width:auto;height:auto;object-fit:contain}
-
-.client-home{--bg:#0e1612;--panel:#19231e;--muted:#a7b5ad;--border:#34443b;background:var(--bg);color:#f3f5f2;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}.client-home *{box-sizing:border-box}.container{max-width:1280px;margin:auto;padding-left:24px;padding-right:24px}.topbar{background:#0a110e;border-bottom:1px solid #1c2922}.header-inner{height:86px;display:flex;justify-content:space-between;align-items:center;gap:24px}.brand{display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:15px;font-weight:650;letter-spacing:.03em}.brand-mark{font-family:Georgia,serif;font-size:32px;font-weight:700}.brand-divider{height:24px;width:1px;background:#45544b;margin:0 13px}.brand-sub{letter-spacing:.18em;font-size:13px;font-weight:500}.header-actions{display:flex;gap:10px}.outline-button{display:inline-flex;align-items:center;gap:10px;border:1px solid #445149;border-radius:8px;color:#fff;text-decoration:none;padding:13px 17px;font-size:13px;font-weight:650;white-space:nowrap}.outline-button:hover,.gallery-link:hover,.arrows button:hover{border-color:#9ab7a4}.wa-icon{display:inline-flex;background:#1dd75d;color:white;width:20px;height:20px;border-radius:5px;align-items:center;justify-content:center;font-size:16px}.service-strip{height:48px;background:#19231e;border-bottom:1px solid #34443b;display:flex;align-items:center;justify-content:center;gap:22px;font-size:12px}.service-strip>span:first-child{letter-spacing:.14em;color:var(--muted)}.strip-divider{height:16px;width:1px;background:#425147}.service-strip strong{font-size:13px;font-weight:500}.state{padding:100px 0;text-align:center;color:var(--muted)}.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;padding-top:12px}.cover-frame{height:680px;position:relative;overflow:hidden;border-radius:8px 8px 0 0;background:#121c17;cursor:zoom-in}.cover-image{width:100%;height:100%;object-fit:cover}.image-placeholder{display:grid;place-items:center;color:var(--muted)}.expand-button{position:absolute;top:16px;right:16px;background:#0b120f;border:1px solid #536259;color:white;border-radius:8px;width:44px;height:44px;cursor:pointer;font-size:25px}.cover-caption{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:17px 19px;background:rgba(8,17,12,.89);font-size:12px}.cover-caption span{color:var(--muted)}.gallery-link{display:flex;align-items:center;gap:16px;width:100%;margin-top:7px;padding:16px 18px;color:white;background:transparent;border:1px solid #445149;border-radius:8px;text-align:left;cursor:pointer;font-size:13px}.gallery-link span{color:var(--muted);font-size:12px}.gallery-link .gallery-arrow{margin-left:auto;font-size:22px;color:white}.specs{display:flex;gap:8px;margin-top:9px}.specs span{flex:1;text-align:center;padding:12px 8px;border:1px solid var(--border);border-radius:7px;background:var(--panel);font-size:12px;color:var(--muted)}.details-column h1{font-size:clamp(42px,4.4vw,62px);letter-spacing:-.065em;font-weight:550;line-height:1.12;margin:0 0 14px}.description{max-width:440px;color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px}.price-row{border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:15px 0 20px;font-size:13px;color:var(--muted)}.price-row div{color:white}.price-row strong{font-size:27px;letter-spacing:-.04em}.booking-card{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:24px}.card-heading{display:flex;gap:17px;align-items:flex-start;margin-bottom:25px}.card-heading>span{color:var(--muted);font-size:11px;margin-top:6px}.card-heading h2{font-size:17px;margin:0 0 6px;letter-spacing:-.025em}.card-heading p{font-size:12px;color:var(--muted);margin:0}.booking-card label{display:block;font-size:13px;font-weight:650;margin-bottom:8px}.booking-card select,.booking-card input,.booking-card textarea{width:100%;background:#101b15;border:1px solid #536458;border-radius:3px;color:white;padding:14px;font:inherit;font-size:13px;min-width:0}.booking-card select{margin-bottom:20px}.booking-card input::-webkit-calendar-picker-indicator{filter:invert(1)}.date-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.date-grid small{display:block;color:var(--muted);font-size:11px;line-height:1.5;margin-top:7px}.quick-row{display:flex;justify-content:space-between;align-items:center;margin:14px 0 10px;gap:12px}.quick-row>span{color:var(--muted);font-size:12px}.quick-row>div{display:flex;gap:7px}.quick-row button,.arrows button{background:#0d1511;border:1px solid #4b5a50;border-radius:7px;color:white;padding:9px 12px;cursor:pointer}.estimate{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:13px 0;display:flex;justify-content:space-between;gap:8px;align-items:center}.estimate span{color:var(--muted);font-size:12px}.estimate strong{color:#a6cdb1;font-size:19px;font-weight:550}.extras-toggle{background:none;border:none;color:white;cursor:pointer;text-align:left;padding:19px 0;font-size:13px}.extras-toggle small{color:var(--muted);margin-left:8px}.extras{display:grid;gap:10px;margin-bottom:15px}.send-button{width:100%;display:flex;justify-content:space-between;align-items:center;background:#0b120e;color:white;border:1px solid #4b5a50;border-radius:7px;padding:12px 15px;font-size:13px;font-weight:700;cursor:pointer}.send-button:disabled{opacity:.55;cursor:not-allowed}.send-button>span:first-child{display:flex;align-items:center;gap:10px}.send-button>span:last-child{font-size:22px}.booking-note{text-align:center;color:var(--muted);font-size:11px;margin:10px 0 0}.gallery-section{margin-top:68px;border-top:1px solid var(--border);padding-top:25px}.section-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.section-heading>div{display:flex;align-items:center;gap:22px}.section-heading>div>span{color:var(--muted);font-size:12px}.section-heading h2{font-size:31px;font-weight:500;letter-spacing:-.045em;margin:0}.section-heading>span{color:var(--muted);font-size:13px}.gallery-stage{height:530px;background:#09110d;border-radius:9px;overflow:hidden;display:flex;justify-content:center;align-items:center}.gallery-stage img{height:100%;max-width:100%;object-fit:contain;cursor:zoom-in}.gallery-controls{display:flex;justify-content:space-between;align-items:center;padding:14px 0}.gallery-controls>div:first-child{display:flex;gap:20px;align-items:center;font-size:12px}.gallery-controls>div:first-child span{color:var(--muted)}.gallery-controls strong{font-weight:500}.dots{display:flex;gap:13px}.dots button{width:6px;height:6px;background:#64776a;border:none;border-radius:50%;padding:0;cursor:pointer}.dots button.active{background:white;width:9px;height:9px}.arrows{display:flex;gap:7px}.arrows button{font-size:21px;width:44px;height:44px}.thumbnail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.thumbnail-grid button{padding:0;position:relative;border:1px solid #4b5a50;border-radius:8px;overflow:hidden;background:#0a120e;cursor:pointer;color:white;text-align:left;height:160px}.thumbnail-grid button.active{border:2px solid white}.thumbnail-grid img{width:100%;height:100%;object-fit:cover}.thumbnail-grid span{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,#07100d);padding:20px 12px 10px;font-size:12px}.faq-section{border-top:1px solid var(--border);margin-top:48px;padding:20px 0 45px;display:grid;grid-template-columns:1fr 1.2fr;gap:50px}.faq-section>p{font-size:13px;color:var(--muted)}.faq-section>p a{color:#b2d7bb;text-decoration:none}.faq-item{border-bottom:1px solid var(--border)}.faq-item button{width:100%;padding:19px 0;display:flex;justify-content:space-between;gap:15px;background:none;border:0;color:white;text-align:left;font-size:14px;cursor:pointer}.faq-item button span{color:#a4d2ae;font-size:22px}.faq-item p{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 17px}.footer{background:#0a110e;padding:22px 0}.footer-inner{display:flex;justify-content:space-between;gap:20px;align-items:center;font-size:13px}.footer-inner>span{color:var(--muted);letter-spacing:.06em}.footer-inner strong{font-size:18px;color:white;letter-spacing:-.04em}.footer-inner a{color:white;text-decoration:none}.lightbox{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.94);display:flex;justify-content:center;align-items:center;padding:40px}.lightbox img{max-width:100%;max-height:100%;object-fit:contain}.lightbox button{position:absolute;top:20px;right:24px;background:transparent;border:0;color:white;font-size:28px;cursor:pointer}@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:25px}.cover-frame{height:580px}.details-column h1{font-size:46px}.faq-section{grid-template-columns:1fr;gap:10px}}@media(max-width:600px){.container{padding-left:16px;padding-right:16px}.header-inner{height:auto;min-height:75px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px;gap:10px}.brand-mark{font-size:27px}.brand{font-size:13px}.brand-sub{font-size:11px}.header-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.outline-button{padding:10px 8px;font-size:11px;justify-content:center;gap:5px}.service-strip{font-size:10px}.hero-grid{padding-top:12px}.cover-frame{height:440px}.cover-caption{font-size:10px}.details-column h1{font-size:41px}.booking-card{padding:17px}.date-grid{grid-template-columns:1fr}.quick-row{flex-wrap:wrap}.gallery-section{margin-top:42px}.section-heading h2{font-size:24px}.section-heading>span{display:none}.gallery-stage{height:330px}.thumbnail-grid{gap:6px}.thumbnail-grid button{height:110px}.footer-inner{font-size:11px}.footer-inner strong{font-size:15px}}
-</style>
